@@ -10,8 +10,6 @@ CREATE SCHEMA IF NOT EXISTS ecommerce;
 SET search_path TO ecommerce, public;
 
 -- ===============================================
--- CRIAÇÃO DAS TABELAS (DDL)
--- ===============================================
 
 -- Tabela de Produtos
 CREATE TABLE IF NOT EXISTS products (
@@ -52,16 +50,14 @@ CREATE INDEX IF NOT EXISTS idx_orders_date ON orders(order_date);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 
 -- ===============================================
--- INSERÇÃO DE DADOS (DML)
--- ===============================================
 
 -- Inserir dados na tabela Produtos
 INSERT INTO products (name, description, price, category, stock_quantity) VALUES
-('Smartphone Samsung Galaxy S23', 'Smartphone Android com 256GB, câmera de 50MP, tela de 6.1 polegadas', 2499.99, 'Eletrônicos', 25),
-('Notebook Dell Inspiron 15', 'Notebook com Intel Core i7, 16GB RAM, SSD 512GB, tela Full HD 15.6 polegadas', 3299.99, 'Informática', 15),
-('Fones de Ouvido Sony WH-1000XM4', 'Fones wireless com cancelamento de ruído ativo, bateria de 30 horas', 899.99, 'Áudio', 40),
-('Smartwatch Apple Watch Series 8', 'Relógio inteligente com GPS, monitoramento de saúde e fitness', 1899.99, 'Wearables', 20),
-('Tablet iPad Air 10.9', 'Tablet Apple com chip M1, 64GB, Wi-Fi, tela Liquid Retina', 2199.99, 'Tablets', 30);
+('Expresso Tradicional', 'Café expresso encorpado com notas de chocolate amargo', R$ 5.00, 'Bebida', 15),
+('Cappuccino Caramelo', 'Cappuccino tradicional com calda de caramelo artesanal e chantilly', R$ 8.50, 'Bebida', 10),
+('Cookie Duplo Chocolate', 'Cookie caseiro com gotas de chocolate meio amargo e chocolate branco', R$ 4.00, 'Doce', 20),
+('Cheesecake do Dia', 'Fatia generosa de cheesecake cremoso', R$ 8.50, 'doce', 10),
+('Sanduíche de Frango', 'Pão artesanal com peito de frango grelhado, alface, tomate e maionese especial', R$ 12.00, 'Salgado', 8);
 
 -- Inserir dados na tabela Pedidos
 INSERT INTO orders (product_id, customer_name, customer_email, quantity, total_amount, status) VALUES
@@ -71,10 +67,6 @@ INSERT INTO orders (product_id, customer_name, customer_email, quantity, total_a
 (4, 'Pedro Oliveira', 'pedro.oliveira@email.com', 1, 1899.99, 'processing'),
 (5, 'Carla Ferreira', 'carla.ferreira@email.com', 3, 6599.97, 'completed'),
 (1, 'Roberto Lima', 'roberto.lima@email.com', 1, 2499.99, 'pending');
-
--- ===============================================
--- CONSULTAS DE VERIFICAÇÃO
--- ===============================================
 
 -- Verificar dados inseridos
 SELECT 'PRODUTOS CADASTRADOS:' as info;
@@ -104,39 +96,3 @@ FROM products p
 LEFT JOIN orders o ON p.id = o.product_id
 GROUP BY p.category
 ORDER BY receita_total DESC;
-
--- ===============================================
--- COMENTÁRIOS SOBRE O MODELO
--- ===============================================
-
-/*
-ESTRUTURA DO BANCO DE DADOS:
-
-1. TABELA PRODUCTS:
-   - Armazena informações dos produtos disponíveis
-   - Chave primária: id (SERIAL)
-   - Campos obrigatórios: name, price, category
-   - Restrições: price >= 0, stock_quantity >= 0
-   - Inclui timestamps para auditoria
-
-2. TABELA ORDERS:
-   - Armazena pedidos realizados pelos clientes
-   - Chave primária: id (SERIAL)
-   - Chave estrangeira: product_id (referencia products.id)
-   - Restrições: quantity > 0, total_amount >= 0
-   - Status para controle do ciclo de vida do pedido
-
-3. RELACIONAMENTOS:
-   - Um produto pode estar em vários pedidos (1:N)
-   - Cada pedido está relacionado a um produto específico
-   - Integridade referencial mantida via FK com restrições
-
-4. ÍNDICES:
-   - Criados para otimizar consultas frequentes
-   - Melhoram performance em buscas por categoria, preço, etc.
-
-5. DADOS DE EXEMPLO:
-   - 5 produtos em diferentes categorias
-   - 6 pedidos com diferentes status
-   - Valores realistas para demonstração
-*/
