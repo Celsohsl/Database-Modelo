@@ -2,7 +2,7 @@
 
 Repositório do Projeto de Estudos, do curso **Tecnologia da Informação da UFMS - Universida Federal do Mato Grosso do Sul**
 
-<h2>Sobre o Projeto: modelagem relacional de banco de dados para sistema de e-commerce com controle de versão Git. 📜<br></h2>
+<h2>Sobre o Projeto: Modelagem relacional de banco de dados para um sistema simples de cafeteria com controle de versão Git. 📜<br></h2>
 
 ## 📌 Descrição do Projeto
 Desenvolver um sistema para um pequeno comércio, como uma livraria ou cafeteria. Esse sistema precisa armazenar informações sobre produtos e pedidos dos clientes. Além disso, a equipe de desenvolvimento precisa manter o código-fonte organizado e versionado.
