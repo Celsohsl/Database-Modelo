@@ -1,98 +1,121 @@
--- ===============================================
--- MODELO DE BANCO DE DADOS RELACIONAL
--- Descrição: Modelo de comércio com tabelas Produtos e Pedidos
--- ===============================================
 
--- Criar schema se não existir
-CREATE SCHEMA IF NOT EXISTS ecommerce;
+-- MODELO DE BANCO DE DADOS - CAFETERIA
+-- PostgreSQL
 
--- Usar o schema
-SET search_path TO ecommerce, public;
-
--- ===============================================
-
--- Tabela de Produtos
-CREATE TABLE IF NOT EXISTS products (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
-    category VARCHAR(100) NOT NULL,
-    stock_quantity INTEGER NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Armazena informações sobre os produtos disponíveis na cafeteria
+CREATE TABLE produtos (
+    id_produto SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    categoria VARCHAR(50) NOT NULL,
+    preco NUMERIC(10, 2) NOT NULL,
+    estoque INT NOT NULL DEFAULT 0,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabela de Pedidos
-CREATE TABLE IF NOT EXISTS orders (
-    id SERIAL PRIMARY KEY,
-    product_id INTEGER NOT NULL,
-    customer_name VARCHAR(255) NOT NULL,
-    customer_email VARCHAR(255) NOT NULL,
-    quantity INTEGER NOT NULL CHECK (quantity > 0),
-    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    total_amount DECIMAL(10, 2) NOT NULL CHECK (total_amount >= 0),
-    status VARCHAR(50) DEFAULT 'pending',
-    
-    -- Chave estrangeira para relacionar com produtos
-    CONSTRAINT fk_product 
-        FOREIGN KEY (product_id) 
-        REFERENCES products(id) 
-        ON DELETE RESTRICT 
-        ON UPDATE CASCADE
+-- Armazena informações dos clientes
+CREATE TABLE clientes (
+    id_cliente SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    telefone VARCHAR(20),
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Índices para melhorar performance
-CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
-CREATE INDEX IF NOT EXISTS idx_products_price ON products(price);
-CREATE INDEX IF NOT EXISTS idx_orders_product_id ON orders(product_id);
-CREATE INDEX IF NOT EXISTS idx_orders_date ON orders(order_date);
-CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+-- Armazena os pedidos realizados pelos clientes
+CREATE TABLE pedidos (
+    id_pedido SERIAL PRIMARY KEY,
+    id_cliente INT NOT NULL,
+    data_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'pendente',
+    valor_total NUMERIC(10, 2) NOT NULL,
+    observacoes TEXT,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
 
--- ===============================================
+-- Relaciona produtos aos pedidos (tabela intermediária)
+CREATE TABLE itens_pedido (
+    id_item SERIAL PRIMARY KEY,
+    id_pedido INT NOT NULL,
+    id_produto INT NOT NULL,
+    quantidade INT NOT NULL,
+    preco_unitario NUMERIC(10, 2) NOT NULL,
+    subtotal NUMERIC(10, 2) NOT NULL,
+    FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido),
+    FOREIGN KEY (id_produto) REFERENCES produtos(id_produto)
+);
 
--- Inserir dados na tabela Produtos
-INSERT INTO products (name, description, price, category, stock_quantity) VALUES
-('Expresso Tradicional', 'Café expresso encorpado com notas de chocolate amargo', R$ 5.00, 'Bebida', 15),
-('Cappuccino Caramelo', 'Cappuccino tradicional com calda de caramelo artesanal e chantilly', R$ 8.50, 'Bebida', 10),
-('Cookie Duplo Chocolate', 'Cookie caseiro com gotas de chocolate meio amargo e chocolate branco', R$ 4.00, 'Doce', 20),
-('Cheesecake do Dia', 'Fatia generosa de cheesecake cremoso', R$ 8.50, 'doce', 10),
-('Sanduíche de Frango', 'Pão artesanal com peito de frango grelhado, alface, tomate e maionese especial', R$ 12.00, 'Salgado', 8);
+-- Inserindo produtos
+INSERT INTO produtos (nome, descricao, categoria, preco, estoque) VALUES
+('Cappuccino', 'Café expresso com leite vaporizado e espuma cremosa', 'Bebidas Quentes', 8.50, 50),
+('Croissant', 'Croissant francês artesanal com manteiga', 'Panificação', 6.00, 30),
+('Cheesecake', 'Torta de queijo cremosa com calda de frutas vermelhas', 'Sobremesas', 12.00, 15),
+('Café Expresso', 'Café expresso tradicional italiano', 'Bebidas Quentes', 5.00, 100),
+('Suco Natural Laranja', 'Suco de laranja natural sem açúcar', 'Bebidas Frias', 7.00, 40);
 
--- Inserir dados na tabela Pedidos
-INSERT INTO orders (product_id, customer_name, customer_email, quantity, total_amount, status) VALUES
-(1, 'Maria Silva', 'maria.silva@email.com', 2, 4999.98, 'completed'),
-(3, 'João Santos', 'joao.santos@email.com', 1, 899.99, 'pending'),
-(2, 'Ana Costa', 'ana.costa@email.com', 1, 3299.99, 'shipped'),
-(4, 'Pedro Oliveira', 'pedro.oliveira@email.com', 1, 1899.99, 'processing'),
-(5, 'Carla Ferreira', 'carla.ferreira@email.com', 3, 6599.97, 'completed'),
-(1, 'Roberto Lima', 'roberto.lima@email.com', 1, 2499.99, 'pending');
+-- Inserindo clientes
+INSERT INTO clientes (nome, email, telefone) VALUES
+('Maria Silva', 'maria.silva@email.com', '(11) 98765-4321'),
+('João Santos', 'joao.santos@email.com', '(11) 91234-5678'),
+('Ana Costa', 'ana.costa@email.com', '(11) 99876-5432'),
+('Pedro Oliveira', 'pedro.oliveira@email.com', '(11) 97654-3210');
 
--- Verificar dados inseridos
-SELECT 'PRODUTOS CADASTRADOS:' as info;
-SELECT id, name, price, category, stock_quantity FROM products ORDER BY id;
+-- Inserindo pedidos
+INSERT INTO pedidos (id_cliente, status, valor_total, observacoes) VALUES
+(1, 'concluído', 20.50, 'Sem açúcar no cappuccino'),
+(2, 'em preparo', 18.00, NULL),
+(3, 'concluído', 25.00, 'Para viagem');
 
-SELECT 'PEDIDOS REALIZADOS:' as info;
+-- Inserindo itens dos pedidos
+INSERT INTO itens_pedido (id_pedido, id_produto, quantidade, preco_unitario, subtotal) VALUES
+-- Pedido 1 (Maria Silva)
+(1, 1, 2, 8.50, 17.00),
+(1, 4, 1, 5.00, 5.00),
+-- Pedido 2 (João Santos)
+(2, 2, 2, 6.00, 12.00),
+(2, 5, 1, 7.00, 7.00),
+-- Pedido 3 (Ana Costa)
+(3, 1, 1, 8.50, 8.50),
+(3, 3, 1, 12.00, 12.00),
+(3, 2, 1, 6.00, 6.00);
+
+
+-- Listar todos os produtos disponíveis
+SELECT * FROM produtos ORDER BY categoria, nome;
+
+-- Listar pedidos com informações do cliente
 SELECT 
-    o.id,
-    p.name as produto,
-    o.customer_name,
-    o.quantity,
-    o.total_amount,
-    o.status,
-    o.order_date
-FROM orders o 
-JOIN products p ON o.product_id = p.id 
-ORDER BY o.order_date DESC;
+    p.id_pedido,
+    c.nome AS cliente,
+    p.data_pedido,
+    p.status,
+    p.valor_total
+FROM pedidos p
+INNER JOIN clientes c ON p.id_cliente = c.id_cliente
+ORDER BY p.data_pedido DESC;
 
--- Relatório de vendas por categoria
-SELECT 'VENDAS POR CATEGORIA:' as info;
+-- Detalhar itens de um pedido específico
 SELECT 
-    p.category,
-    COUNT(o.id) as total_pedidos,
-    SUM(o.quantity) as total_itens_vendidos,
-    SUM(o.total_amount) as receita_total
-FROM products p
-LEFT JOIN orders o ON p.id = o.product_id
-GROUP BY p.category
-ORDER BY receita_total DESC;
+    ip.id_pedido,
+    pr.nome AS produto,
+    ip.quantidade,
+    ip.preco_unitario,
+    ip.subtotal
+FROM itens_pedido ip
+INNER JOIN produtos pr ON ip.id_produto = pr.id_produto
+WHERE ip.id_pedido = 1;
+
+-- Relatório completo de pedidos
+SELECT 
+    p.id_pedido,
+    c.nome AS cliente,
+    pr.nome AS produto,
+    ip.quantidade,
+    ip.subtotal,
+    p.valor_total,
+    p.status
+FROM pedidos p
+INNER JOIN clientes c ON p.id_cliente = c.id_cliente
+INNER JOIN itens_pedido ip ON p.id_pedido = ip.id_pedido
+INNER JOIN produtos pr ON ip.id_produto = pr.id_produto
+ORDER BY p.id_pedido;
